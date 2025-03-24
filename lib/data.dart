@@ -42,21 +42,40 @@ class Stages {
   bool baseCamp_score = true;
   bool baseCamp_card = true;
   bool baseCamp_leaderboard = true;
-  bool crest_booking = false;
-  bool crest_score = false;
-  bool crest_card = false;
-  bool crest_leaderboard = false;
+  bool crest_booking = true;
+  bool crest_score = true;
+  bool crest_card = true;
+  bool crest_leaderboard = true;
   bool summit_leaderboard = false;
 }
 
 Stages stages = Stages();
 
-Future<Stages> fetchStagesFromFirestore() async {
+Future<Stages> fetchPhasesFromFirestore() async {
   DocumentSnapshot snapshot =
-      await FirebaseFirestore.instance
-          .collection('EventInfo')
-          .doc('stagesDoc')
-          .get();
+      await FirebaseFirestore.instance.collection('event').doc('Phases').get();
+
+  if (snapshot.exists) {
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    return Stages()
+      ..baseCamp_score = data['baseCamp_score'] ?? false
+      ..baseCamp_card = data['baseCamp_card'] ?? false
+      ..baseCamp_leaderboard = data['baseCamp_leaderboard'] ?? false
+      ..crest_booking = data['crest_booking'] ?? false
+      ..crest_score = data['crest_score'] ?? false
+      ..crest_card = data['crest_card'] ?? false
+      ..crest_leaderboard = data['crest_leaderboard'] ?? false
+      ..summit_leaderboard = data['summit_leaderboard'] ?? false;
+  } else {
+    throw Exception("Document does not exist");
+  }
+}
+
+Future<Stages> fetchStagesFromFirestore() async {
+  DocumentSnapshot snapshot = await FirebaseFirestore.instance
+      .collection('EventInfo')
+      .doc('stagesDoc')
+      .get();
 
   if (snapshot.exists) {
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;

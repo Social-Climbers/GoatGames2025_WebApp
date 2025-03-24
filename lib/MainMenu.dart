@@ -2,15 +2,67 @@ import 'package:flutter/material.dart';
 import 'package:goatgames25webapp/BaseCampCardView.dart';
 import 'package:goatgames25webapp/BaseCampScoreCollecion.dart';
 import 'package:goatgames25webapp/BasecampLeaderboard.dart';
+import 'package:goatgames25webapp/BookSlot.dart';
 import 'package:goatgames25webapp/ButtonBox.dart';
+import 'package:goatgames25webapp/CrestCardView.dart';
+import 'package:goatgames25webapp/CrestLeaderboard.dart';
+import 'package:goatgames25webapp/CrestScoreCollecion.dart';
+import 'package:goatgames25webapp/EventUtil.dart';
 import 'package:goatgames25webapp/Theme.dart';
 import 'package:goatgames25webapp/data.dart';
 import 'package:goatgames25webapp/main.dart';
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
   final String userId;
 
   MainPage({required this.userId});
+
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  bool baseCampActive = false;
+  bool crestActive = false;
+  @override
+  void initState() {
+    super.initState();
+    checkForActiveBaseCampSession();
+    checkForActiveCrestSession();
+  }
+
+  void checkForActiveBaseCampSession() async {
+    print("Checking for Active Session");
+    if (await getSessionActive("Basecamp") == true) {
+      print("BaseCamp Session Found");
+      baseCampActive = true;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => BaseCampScoreCard(isNew: false)),
+      ).then((_) {
+        setState(() {});
+      });
+      await Future.delayed(Duration(milliseconds: 200));
+      WidgetsBinding.instance.addPostFrameCallback((_) {});
+    }
+  }
+
+  void checkForActiveCrestSession() async {
+    print("Checking for Active Session");
+    if (await getSessionActive("Crest") == true) {
+      print("Crest Session Found");
+      baseCampActive = true;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => CrestScoreCard(isNew: false)),
+      ).then((_) {
+        setState(() {});
+      });
+      await Future.delayed(Duration(milliseconds: 200));
+      WidgetsBinding.instance.addPostFrameCallback((_) {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,117 +156,138 @@ class MainPage extends StatelessWidget {
                     ),
                     Stages().baseCamp_leaderboard
                         ? Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Category',
-                                style: TextStyle(
-                                  color: AccentColor,
-                                  fontSize: size.width * 0.04,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Category',
+                                  style: TextStyle(
+                                    color: AccentColor,
+                                    fontSize: size.width * 0.04,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Container(
-                              alignment: Alignment.center,
-                              width: size.width * 0.3,
-                              padding: EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                boxShadow: [
-                                  // BoxShadow(
-                                  //   color: AccentColor,
-                                  //   spreadRadius: 1,
-                                  //   blurRadius: 7,
-                                  //   offset: Offset(0, 3),
-                                  // ),
-                                ],
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AccentColor),
-                              ),
-                              child: Text(
-                                userData.ibex ? "Ibex" : "Silverhorn",
-                                style: TextStyle(
-                                  color: AccentColor,
-                                  fontSize: size.width * 0.04,
+                              Container(
+                                alignment: Alignment.center,
+                                width: size.width * 0.3,
+                                padding: EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    // BoxShadow(
+                                    //   color: AccentColor,
+                                    //   spreadRadius: 1,
+                                    //   blurRadius: 7,
+                                    //   offset: Offset(0, 3),
+                                    // ),
+                                  ],
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AccentColor),
+                                ),
+                                child: Text(
+                                  userData.ibex ? "Ibex" : "Silverhorn",
+                                  style: TextStyle(
+                                    color: AccentColor,
+                                    fontSize: size.width * 0.04,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        )
+                            ],
+                          )
                         : SizedBox(),
                   ],
                 ),
               ),
               SponsorBox(),
-
               Expanded(
                 child: ListView(
                   children: [
                     Stages().baseCamp_score
-                        ? userData.phases['baseCamp_score']['completed'] ==
-                                !true
-                            ? MenuButton(
-                              context,
-                              "Basecamp",
-                              "Score Collection",
-                              "assets/bc_logo.jpg",
-                              BaseCampScoreCard(),
-                              true,
-                            )
-                            : SizedBox()
-                        : SizedBox(),
-                    Stages().baseCamp_card
+                        // ? userData.phases['baseCamp_score']['completed'] ==
+                        //         !true
                         ? MenuButton(
-                          context,
-                          "Basecamp",
-                          "Scorecard",
-                          "assets/bc_logo.jpg",
-                          BaseCampCardView(),
-                          false,
-                        )
+                            context,
+                            "Basecamp",
+                            "Score Collection",
+                            "assets/bc_logo.jpg",
+                            BaseCampScoreCard(
+                              isNew: true,
+                            ),
+                            true,
+                          )
                         : SizedBox(),
+
+                    // userData.phases['baseCamp_score']['completed'] == true
+                    MenuButton(
+                      context,
+                      "Basecamp",
+                      "Scorecard",
+                      "assets/bc_logo.jpg",
+                      BaseCampCardView(),
+                      false,
+                    ),
+
                     Stages().baseCamp_leaderboard
                         ? MenuButton(
-                          context,
-                          "Basecamp",
-                          "Leadboard",
-                          "assets/bc_logo.jpg",
-                          BasecampLeaderboard(),
-                          false,
-                        )
+                            context,
+                            "Basecamp",
+                            "Leadboard",
+                            "assets/bc_logo.jpg",
+                            BasecampLeaderboard(),
+                            false,
+                          )
                         : SizedBox(),
                     Stages().crest_booking
                         ? MenuButton(
-                          context,
-                          "Crest",
-                          "Timeslots",
-                          "assets/bc_logo.jpg",
-                          BaseCampScorePage(userId: userId),
-                          false,
-                        )
+                            context,
+                            "Crest",
+                            "Timeslots",
+                            "assets/bc_logo.jpg",
+                            CrestSlotBookingPage(),
+                            false,
+                          )
                         : SizedBox(),
                     Stages().crest_score
                         ? userData.phases['Crest_score']['completed'] == !true
                             ? MenuButton(
-                              context,
-                              "Crest",
-                              "Crest Collection",
-                              "assets/crest_logo.jpg",
-                              BaseCampScorePage(userId: userId),
-                              false,
-                            )
+                                context,
+                                "Crest",
+                                "Score Collection",
+                                "assets/crest_logo.jpg",
+                                CrestScoreCard(isNew: true),
+                                true,
+                              )
                             : SizedBox()
+                        : SizedBox(),
+                    Stages().crest_card
+                        ? MenuButton(
+                            context,
+                            "Crest",
+                            "Score Card",
+                            "assets/crest_logo.jpg",
+                            CrestCardView(),
+                            false,
+                          )
                         : SizedBox(),
                     Stages().crest_leaderboard
                         ? MenuButton(
-                          context,
-                          "Crest",
-                          "Leaderboard",
-                          "assets/crest_logo.jpg",
-                          BaseCampScorePage(userId: userId),
-                          false,
-                        )
+                            context,
+                            "Crest",
+                            "Leadboard",
+                            "assets/crest_logo.jpg",
+                            CrestLeaderboard(),
+                            false,
+                          )
+                        : SizedBox(),
+                    Stages().crest_leaderboard
+                        ? MenuButton(
+                            context,
+                            "Summit",
+                            "Leadboard",
+                            "assets/summit_logo.jpg",
+                            CrestLeaderboard(),
+                            false,
+                          )
                         : SizedBox(),
                   ],
                 ),
@@ -284,11 +357,61 @@ class MainPage extends StatelessWidget {
               ],
             ),
             GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => location),
-                );
+              onTap: () async {
+                if (isActive) {
+                  bool? confirm = await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        backgroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        title: Text(
+                          "Confirmation",
+                          style: TextStyle(color: AccentColor),
+                        ),
+                        content: Text(
+                          "Are you sure you want to start the collection?",
+                          style: TextStyle(color: AccentColor),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(false);
+                            },
+                            child: Text("No",
+                                style: TextStyle(color: AccentColor)),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(true);
+                            },
+                            child: Text("Yes",
+                                style: TextStyle(color: AccentColor)),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  if (confirm == true) {
+                    updateSessionActive(true, title);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => location),
+                    ).then((onValue) {
+                      setState(() {});
+                    });
+                  }
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => location),
+                  ).then((onValue) {
+                    setState(() {});
+                  });
+                }
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,

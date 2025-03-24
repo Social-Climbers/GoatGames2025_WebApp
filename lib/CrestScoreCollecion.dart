@@ -6,16 +6,16 @@ import 'package:goatgames25webapp/RouteData.dart';
 import 'package:goatgames25webapp/Theme.dart';
 import 'package:goatgames25webapp/data.dart';
 
-class BaseCampScoreCard extends StatefulWidget {
+class CrestScoreCard extends StatefulWidget {
   final bool isNew;
 
-  BaseCampScoreCard({required this.isNew});
+  CrestScoreCard({required this.isNew});
 
   @override
-  _BaseCampScoreCardState createState() => _BaseCampScoreCardState();
+  _CrestScoreCardState createState() => _CrestScoreCardState();
 }
 
-class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
+class _CrestScoreCardState extends State<CrestScoreCard> {
   bool isFemale = false;
   DateTime startTime = DateTime.now();
   DateTime endTime = DateTime.now();
@@ -25,11 +25,11 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
   int topN = 0;
   int zoneN = 0;
   double requiredScore = 0;
-  int topRoutesRange = 10;
+  int topRoutesRange = 6;
   TextEditingController MinScoreTextController = TextEditingController();
   TextEditingController TopRoutesRangeController = TextEditingController();
   void _updateTop10Routes(List<Map<String, dynamic>> topRoutes) {
-    for (var route in baseCampRouteData) {
+    for (var route in crestRouteData) {
       if (topRoutes.contains(route)) {
         route["isTop10"] = true;
       } else {
@@ -41,9 +41,9 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
           .collection('Climbers')
           .doc(userData.userID)
           .collection('Score')
-          .doc('basecamp')
+          .doc('crest')
           .update({
-        'basecampRouteData': baseCampRouteData.map((r) {
+        'crestRouteData': crestRouteData.map((r) {
           if (r['Route'] == route['Route']) {
             r['isTop10'] = route['isTop10'];
           }
@@ -61,13 +61,13 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
           .collection('Climbers')
           .doc(userData.userID)
           .collection('Score')
-          .doc('basecamp')
+          .doc('crest')
           .set({
         'total': totalScore,
         'start_time': startTime,
         'end_time': endTime,
         'tier': tier,
-        'basecampRouteData': baseCampRouteData
+        'crestRouteData': crestRouteData
       }).then((onValue) {
         print("Score Created");
       });
@@ -80,24 +80,16 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
         .collection('Climbers')
         .doc(userData.userID)
         .collection('Score')
-        .doc('basecamp')
+        .doc('crest')
         .update({
       'top': _topCount(),
       'zone': _zoneCount(),
       'total': totalScore,
       'end_time': endTime,
       'tier': tier,
-      'basecampRouteData': baseCampRouteData,
+      'crestRouteData': crestRouteData,
       'time_used':
           '${timeSpent.inHours}h ${timeSpent.inMinutes % 60}m ${timeSpent.inSeconds % 60}s',
-    }).then((onValue) {
-      print("Score Submitted");
-    });
-    FirebaseFirestore.instance
-        .collection('Climbers')
-        .doc(userData.userID)
-        .update({
-      'tier': tier,
     }).then((onValue) {
       print("Score Submitted");
     });
@@ -108,11 +100,11 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
         .collection('Climbers')
         .doc(userData.userID)
         .collection('Score')
-        .doc('basecamp')
+        .doc('crest')
         .get()
         .then((doc) {
       if (doc.exists) {
-        List<dynamic> routes = doc.data()!['basecampRouteData'];
+        List<dynamic> routes = doc.data()!['crestRouteData'];
         int index = routes.indexWhere((r) => r['Route'] == route['Route']);
         if (index != -1) {
           routes[index] = route;
@@ -120,9 +112,9 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
               .collection('Climbers')
               .doc(userData.userID)
               .collection('Score')
-              .doc('basecamp')
+              .doc('crest')
               .update({
-            'basecampRouteData': routes,
+            'crestRouteData': routes,
           }).then((onValue) {
             print("Route Updated in Firebase");
           });
@@ -136,11 +128,11 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
         .collection('Climbers')
         .doc(userData.userID)
         .collection('Score')
-        .doc('basecamp')
+        .doc('crest')
         .get()
         .then((doc) {
       if (doc.exists) {
-        List<dynamic> routes = doc.data()!['basecampRouteData'];
+        List<dynamic> routes = doc.data()!['crestRouteData'];
         int index = routes.indexWhere((r) => r['Route'] == route['Route']);
         if (index != -1) {
           routes[index] = route;
@@ -150,9 +142,9 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
               .collection('Climbers')
               .doc(userData.userID)
               .collection('Score')
-              .doc('basecamp')
+              .doc('crest')
               .update({
-            'basecampRouteData': routes,
+            'crestRouteData': routes,
           }).then((onValue) {
             print("Route Updated in Firebase");
           });
@@ -162,7 +154,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
   }
 
   void _resetIsTop10() {
-    for (var route in baseCampRouteData) {
+    for (var route in crestRouteData) {
       route["isTop10"] = false;
       _updateRouteInFirebase(route);
     }
@@ -177,7 +169,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
     _resetIsTop10();
 
     // Filter routes where Top is checked
-    var topRoutes = baseCampRouteData
+    var topRoutes = crestRouteData
         .where((route) => route["Top"] == true || route["Zone"] == true)
         .toList();
 
@@ -227,7 +219,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
 
     // If there are less than 10 top routes, add the zone points of the remaining routes
     if (topRoutes.length < topRoutesRange) {
-      var remainingRoutes = baseCampRouteData
+      var remainingRoutes = crestRouteData
           .where((route) => !route["Top"])
           .toList()
           .take(topRoutesRange - topRoutes.length);
@@ -242,7 +234,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
       }
     }
 
-    for (var route in baseCampRouteData) {
+    for (var route in crestRouteData) {
       if (!topRoutes.contains(route)) {
         route["isTop10"] = false;
         _updateRouteInFirebase(route); // Update the route in Firebase
@@ -262,7 +254,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
         .collection('Climbers')
         .doc(userData.userID)
         .collection('Score')
-        .doc('basecamp')
+        .doc('crest')
         .update(
       {
         'total': this.totalScore,
@@ -280,9 +272,12 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
   void _showConfirmationDialog(
     String routeType,
     bool isSelected,
-    Function onConfirm,
+    Function(String) onConfirm,
   ) {
     String action = isSelected ? "unsend" : "confirm";
+    TextEditingController witnessController = TextEditingController();
+    Color textFieldColor = Colors.white;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -292,22 +287,60 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
             side: BorderSide(color: Colors.white),
             borderRadius: BorderRadius.circular(8),
           ),
-          title: Text(
-            '$action $routeType route?',
-            style: TextStyle(color: AccentColor),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$action $routeType route?',
+                style: TextStyle(color: AccentColor),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Please enter a witness name',
+                style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
+            ],
+          ),
+          content: TextField(
+            controller: witnessController,
+            decoration: InputDecoration(
+              labelText: 'Witness Name',
+              labelStyle: TextStyle(color: AccentColor),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: textFieldColor),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: textFieldColor),
+              ),
+            ),
+            style: TextStyle(color: textFieldColor),
           ),
           actions: <Widget>[
             TextButton(
               child: Text('Cancel', style: TextStyle(color: AccentColor)),
               onPressed: () {
                 Navigator.of(context).pop();
+                setState(() {});
               },
             ),
             TextButton(
               child: Text('Confirm', style: TextStyle(color: AccentColor)),
               onPressed: () {
-                onConfirm();
-                Navigator.of(context).pop();
+                if (witnessController.text.isEmpty) {
+                  setState(() {
+                    textFieldColor = AccentColor;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Witness name cannot be empty'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                } else {
+                  onConfirm(witnessController.text);
+                  Navigator.of(context).pop();
+                  setState(() {});
+                }
               },
             ),
           ],
@@ -317,11 +350,11 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
   }
 
   int _zoneCount() {
-    return baseCampRouteData.where((route) => route["Zone"] == true).length;
+    return crestRouteData.where((route) => route["Zone"] == true).length;
   }
 
   int _topCount() {
-    return baseCampRouteData.where((route) => route["Top"] == true).length;
+    return crestRouteData.where((route) => route["Top"] == true).length;
   }
 
   void _showSubmitDialog() {
@@ -397,14 +430,14 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                 setState(() {
                   userData.baseCampDetails['start_time'] = startTime;
                   userData.baseCampDetails['end_time'] = endTime;
-                  userData.phases['baseCamp_score'] = {
+                  userData.phases['crest_score'] = {
                     'completed': true,
                     'timestamp': DateTime.now(),
                   };
                 });
                 print(userData.phases);
                 _submitScore();
-                updateSessionActive(false, "Basecamp").then((onValue) {
+                updateSessionActive(false, "Crest").then((onValue) {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -434,7 +467,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
           .collection('Climbers')
           .doc(userData.userID)
           .collection('Score')
-          .doc('basecamp')
+          .doc('crest')
           .get()
           .then((doc) {
         if (doc.exists) {
@@ -467,7 +500,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
         .collection('Climbers')
         .doc(userData.userID)
         .collection('Score')
-        .doc('basecamp')
+        .doc('crest')
         .get()
         .then((doc) {
       if (doc.exists) {
@@ -586,7 +619,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                         padding: EdgeInsets.all(8),
                         color: AccentColor,
                         child: Text(
-                          "Basecamp - ${isFemale ? "Female" : "Male"}",
+                          "Crest - ${isFemale ? "Female" : "Male"}",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
@@ -632,7 +665,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                             .collection('Climbers')
                             .doc(userData.userID)
                             .collection('Score')
-                            .doc('basecamp')
+                            .doc('crest')
                             .snapshots(),
                         builder: (context, snapshot) {
                           if (!snapshot.hasData) {
@@ -643,14 +676,14 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                               snapshot.data!.data() as Map<String, dynamic>? ??
                                   {};
 
-                          baseCampRouteData = (basecampData['basecampRouteData']
+                          crestRouteData = (basecampData['crestRouteData']
                                       as List?)
                                   ?.map((item) => item as Map<String, dynamic>)
                                   .toList() ??
                               [];
-                          //print(baseCampRouteData);
+                          //print(crestRouteData);
                           return Column(
-                            children: baseCampRouteData.map((route) {
+                            children: crestRouteData.map((route) {
                               Color rowColor = Colors.transparent;
                               // if (route["Zone"]) {
                               //   rowColor = Colors.grey[200]!;
@@ -669,12 +702,26 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                                     Expanded(
                                       child: Container(
                                         padding: EdgeInsets.all(8),
-                                        child: Text(
-                                          route["Route"],
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              route["Route"],
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            if (route["verified"] == true)
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: Icon(
+                                                  Icons.check_circle,
+                                                  color: Colors.green,
+                                                  size: 16,
+                                                ),
+                                              ),
+                                          ],
                                         ),
                                       ),
                                     ),
@@ -684,11 +731,13 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                                           _showConfirmationDialog(
                                             "zone",
                                             route["Zone"],
-                                            () {
+                                            (witness) {
                                               setState(() {
                                                 route["Zone"] = !route["Zone"];
                                                 if (!route["Zone"])
                                                   route["Top"] = false;
+                                                route["verified"] = true;
+                                                route["verifiedBy"] = witness;
                                                 _calculateScore();
 
                                                 _updateRouteInFirebase(route);
@@ -736,11 +785,13 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                                           _showConfirmationDialog(
                                             "top",
                                             route["Top"],
-                                            () {
+                                            (witness) {
                                               setState(() {
                                                 route["Top"] = !route["Top"];
                                                 if (route["Top"])
                                                   route["Zone"] = true;
+                                                route["verified"] = true;
+                                                route["verifiedBy"] = witness;
                                                 _calculateScore();
                                                 _updateRouteInFirebase(route);
                                                 // Update the route in Firebase

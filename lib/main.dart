@@ -1,12 +1,20 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:goatgames25webapp/BaseCampCardView.dart';
 import 'package:goatgames25webapp/BaseCampScoreCollecion.dart';
+import 'package:goatgames25webapp/BasecampLeaderboard.dart';
 import 'package:goatgames25webapp/MainMenu.dart';
 import 'package:goatgames25webapp/Theme.dart';
 import 'package:goatgames25webapp/data.dart';
+import 'package:goatgames25webapp/firebase_options.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  //fetchPhasesFromFirestore();
   runApp(const MyApp());
 }
 
@@ -28,9 +36,10 @@ class MyApp extends StatelessWidget {
         // ),
       ),
       home:
-      //BaseCampCardView(),
-      //BaseCampScoreCard(),
-      MainPage(userId: 'GG25-000'),
+          // BasecampLeaderboard()
+          //BaseCampCardView(),
+          //BaseCampScoreCard(),
+          MainPage(userId: 'GG25-150'),
     );
   }
 }
@@ -54,11 +63,11 @@ class LoginPage extends StatelessWidget {
         width: size.width,
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          // image: DecorationImage(
-          //   image: AssetImage('assets/bg.jpg'),
-          //   fit: BoxFit.cover,
-          // ),
-        ),
+            // image: DecorationImage(
+            //   image: AssetImage('assets/bg.jpg'),
+            //   fit: BoxFit.cover,
+            // ),
+            ),
         child: Container(
           padding: const EdgeInsets.all(18.0),
           decoration: BoxDecoration(border: Border.all(color: AccentColor)),

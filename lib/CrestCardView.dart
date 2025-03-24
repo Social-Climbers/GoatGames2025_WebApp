@@ -5,12 +5,12 @@ import 'package:goatgames25webapp/Theme.dart';
 import 'package:goatgames25webapp/data.dart';
 import 'package:intl/intl.dart';
 
-class BaseCampCardView extends StatefulWidget {
+class CrestCardView extends StatefulWidget {
   @override
-  _BaseCampCardViewState createState() => _BaseCampCardViewState();
+  _CrestCardViewState createState() => _CrestCardViewState();
 }
 
-class _BaseCampCardViewState extends State<BaseCampCardView> {
+class _CrestCardViewState extends State<CrestCardView> {
   bool isFemale = false;
   DateTime startTime = DateTime.now();
   DateTime endTime = DateTime.now();
@@ -67,7 +67,7 @@ class _BaseCampCardViewState extends State<BaseCampCardView> {
                   .collection('Climbers')
                   .doc(userData.userID)
                   .collection('Score')
-                  .doc('basecamp')
+                  .doc('crest')
                   .get(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -198,20 +198,20 @@ class _BaseCampCardViewState extends State<BaseCampCardView> {
                 );
               },
             ),
+            SponsorBox(),
             Container(
               alignment: Alignment.center,
               width: MediaQuery.of(context).size.width,
               padding: EdgeInsets.all(8),
               color: AccentColor,
               child: Text(
-                "Basecamp - ${isFemale ? "Female" : "Male"}",
+                "Crest - ${isFemale ? "Female" : "Male"}",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
             ),
-            SponsorBox(),
             Container(
               width: MediaQuery.of(context).size.width,
               child: Column(
@@ -255,7 +255,7 @@ class _BaseCampCardViewState extends State<BaseCampCardView> {
                         .collection('Climbers')
                         .doc(userData.userID)
                         .collection('Score')
-                        .doc('basecamp')
+                        .doc('crest')
                         .get(),
                     builder: (context, snapshot) {
                       // var data = snapshot.data!.data() as Map<String, dynamic>;
@@ -268,7 +268,7 @@ class _BaseCampCardViewState extends State<BaseCampCardView> {
                       }
                       var data = snapshot.data!.data() as Map<String, dynamic>;
                       //  print(data['basecampRouteData']);
-                      var baseCampRouteDataOnline = data['basecampRouteData'];
+                      var baseCampRouteDataOnline = data['crestRouteData'];
                       if (baseCampRouteData == null) {
                         return Center(child: Text('No route data found'));
                       }
@@ -284,12 +284,27 @@ class _BaseCampCardViewState extends State<BaseCampCardView> {
                                 Expanded(
                                   child: Container(
                                     padding: EdgeInsets.all(8),
-                                    child: Text(
-                                      route["Route"] ?? 'Unknown Route',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          route["Route"] ?? 'Unknown Route',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        if (route["verified"] ==
+                                            true) // Check if the route is verified
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 8.0),
+                                            child: Icon(
+                                              Icons.check,
+                                              color: Colors.green,
+                                              size: 16,
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
                                 ),

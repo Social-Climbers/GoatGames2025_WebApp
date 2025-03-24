@@ -7,10 +7,6 @@ import 'package:goatgames25webapp/Theme.dart';
 import 'package:goatgames25webapp/data.dart';
 
 class BaseCampScoreCard extends StatefulWidget {
-  final bool isNew;
-
-  BaseCampScoreCard({required this.isNew});
-
   @override
   _BaseCampScoreCardState createState() => _BaseCampScoreCardState();
 }
@@ -22,38 +18,10 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
   bool disableWeight = false;
   String tier = "Unclassified";
   double totalScore = 0;
-  int topN = 0;
-  int zoneN = 0;
   double requiredScore = 0;
   int topRoutesRange = 10;
   TextEditingController MinScoreTextController = TextEditingController();
   TextEditingController TopRoutesRangeController = TextEditingController();
-  void _updateTop10Routes(List<Map<String, dynamic>> topRoutes) {
-    for (var route in baseCampRouteData) {
-      if (topRoutes.contains(route)) {
-        route["isTop10"] = true;
-      } else {
-        route["isTop10"] = false;
-      }
-      print(
-          "Updating route: ${route['Route']} with isTop10: ${route['isTop10']}");
-      FirebaseFirestore.instance
-          .collection('Climbers')
-          .doc(userData.userID)
-          .collection('Score')
-          .doc('basecamp')
-          .update({
-        'basecampRouteData': baseCampRouteData.map((r) {
-          if (r['Route'] == route['Route']) {
-            r['isTop10'] = route['isTop10'];
-          }
-          return r;
-        }).toList(),
-      }).then((onValue) {
-        print("Route isTop10 updated in Firebase");
-      });
-    }
-  }
 
   void _createScore(bool firstTime) {
     if (firstTime) {
@@ -75,97 +43,19 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
   }
 
   void _submitScore() {
-    Duration timeSpent = endTime.difference(startTime);
     FirebaseFirestore.instance
         .collection('Climbers')
         .doc(userData.userID)
         .collection('Score')
         .doc('basecamp')
         .update({
-      'top': _topCount(),
-      'zone': _zoneCount(),
       'total': totalScore,
       'end_time': endTime,
       'tier': tier,
-      'basecampRouteData': baseCampRouteData,
-      'time_used':
-          '${timeSpent.inHours}h ${timeSpent.inMinutes % 60}m ${timeSpent.inSeconds % 60}s',
+      'basecampRouteData': baseCampRouteData
     }).then((onValue) {
       print("Score Submitted");
     });
-    FirebaseFirestore.instance
-        .collection('Climbers')
-        .doc(userData.userID)
-        .update({
-      'tier': tier,
-    }).then((onValue) {
-      print("Score Submitted");
-    });
-  }
-
-  void _updateRouteInFirebase(Map<String, dynamic> route) {
-    FirebaseFirestore.instance
-        .collection('Climbers')
-        .doc(userData.userID)
-        .collection('Score')
-        .doc('basecamp')
-        .get()
-        .then((doc) {
-      if (doc.exists) {
-        List<dynamic> routes = doc.data()!['basecampRouteData'];
-        int index = routes.indexWhere((r) => r['Route'] == route['Route']);
-        if (index != -1) {
-          routes[index] = route;
-          FirebaseFirestore.instance
-              .collection('Climbers')
-              .doc(userData.userID)
-              .collection('Score')
-              .doc('basecamp')
-              .update({
-            'basecampRouteData': routes,
-          }).then((onValue) {
-            print("Route Updated in Firebase");
-          });
-        }
-      }
-    });
-  }
-
-  void _updateRouteNoTop10(Map<String, dynamic> route) {
-    FirebaseFirestore.instance
-        .collection('Climbers')
-        .doc(userData.userID)
-        .collection('Score')
-        .doc('basecamp')
-        .get()
-        .then((doc) {
-      if (doc.exists) {
-        List<dynamic> routes = doc.data()!['basecampRouteData'];
-        int index = routes.indexWhere((r) => r['Route'] == route['Route']);
-        if (index != -1) {
-          routes[index] = route;
-
-          routes[index]['isTop10'] = false;
-          FirebaseFirestore.instance
-              .collection('Climbers')
-              .doc(userData.userID)
-              .collection('Score')
-              .doc('basecamp')
-              .update({
-            'basecampRouteData': routes,
-          }).then((onValue) {
-            print("Route Updated in Firebase");
-          });
-        }
-      }
-    });
-  }
-
-  void _resetIsTop10() {
-    for (var route in baseCampRouteData) {
-      route["isTop10"] = false;
-      _updateRouteInFirebase(route);
-    }
   }
 
   void _calculateScore() {
@@ -174,7 +64,9 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
     bool climbedAnyIbex = false;
 
     // Reset the top 10 flag for all routes
-    _resetIsTop10();
+    for (var route in baseCampRouteData) {
+      route["isTop10"] = false;
+    }
 
     // Filter routes where Top is checked
     var topRoutes = baseCampRouteData
@@ -183,8 +75,8 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
 
     // Sort the routes by route number in descending order
     topRoutes.sort((a, b) {
-      int aRouteNumber = int.parse(a["Route"]?.split(" ")[1] ?? '0');
-      int bRouteNumber = int.parse(b["Route"]?.split(" ")[1] ?? '0');
+      int aRouteNumber = int.parse(a["Route"].split(" ")[1]);
+      int bRouteNumber = int.parse(b["Route"].split(" ")[1]);
       return bRouteNumber.compareTo(aRouteNumber);
     });
 
@@ -194,11 +86,10 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
     // Mark the top routes
     for (var route in topRoutes) {
       route["isTop10"] = true;
-      _updateRouteInFirebase(route);
     }
 
     for (var route in topRoutes) {
-      int routeNumber = int.parse(route["Route"]?.split(" ")[1] ?? '0');
+      int routeNumber = int.parse(route["Route"].split(" ")[1]);
 
       if (routeNumber >= 13 && route["Top"]) {
         climbedAnyIbex = true;
@@ -237,44 +128,16 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
           totalScore +=
               route["Zone Points"] * (disableWeight ? 1 : route["Zone Weight"]);
           route["isTop10"] = true; // Mark the zone as part of the top 10
-          _updateRouteInFirebase(route); // Update the route in Firebase
         }
       }
     }
 
-    for (var route in baseCampRouteData) {
-      if (!topRoutes.contains(route)) {
-        route["isTop10"] = false;
-        _updateRouteInFirebase(route); // Update the route in Firebase
-      }
-    }
-
-    for (var route in topRoutes) {
-      print(route['Route']);
-    }
     this.totalScore = totalScore;
     tier =
         (totalScore >= requiredScore || climbedAnyIbex) ? "Ibex" : "Silverhorn";
     print(this.totalScore);
     print(tier);
-
-    FirebaseFirestore.instance
-        .collection('Climbers')
-        .doc(userData.userID)
-        .collection('Score')
-        .doc('basecamp')
-        .update(
-      {
-        'total': this.totalScore,
-        'tier': tier,
-        'top': _topCount(),
-        'zone': _zoneCount(),
-      },
-    );
-    _updateData();
     setState(() {});
-    _updateTop10Routes(topRoutes);
-    // _updateScoreInFirebase(); // Update the score in Firebase
   }
 
   void _showConfirmationDialog(
@@ -427,34 +290,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
   @override
   void initState() {
     super.initState();
-    if (widget.isNew) {
-      _createScore(true);
-    } else {
-      FirebaseFirestore.instance
-          .collection('Climbers')
-          .doc(userData.userID)
-          .collection('Score')
-          .doc('basecamp')
-          .get()
-          .then((doc) {
-        if (doc.exists) {
-          var data = doc.data()!;
-          setState(() {
-            startTime = (data['start_time'] as Timestamp).toDate();
-            topN = data['top'];
-            zoneN = data['zone'];
-            totalScore = data['total'] ?? totalScore;
-            requiredScore = data['requiredScore'] ?? requiredScore;
-            tier = data['tier'] ?? tier;
-            endTime = (data['end_time'] as Timestamp).toDate();
-          });
-          // print(topN);
-        }
-      }).then((onValue) {
-        setState(() {});
-      });
-    }
-
+    _createScore(true);
     isFemale = userData.isFemale;
     requiredScore = isFemale == false ? 40800 : 34000;
     MinScoreTextController.text = requiredScore.toString();
@@ -462,31 +298,9 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
     startTime = DateTime.now();
   }
 
-  void _updateData() {
-    FirebaseFirestore.instance
-        .collection('Climbers')
-        .doc(userData.userID)
-        .collection('Score')
-        .doc('basecamp')
-        .get()
-        .then((doc) {
-      if (doc.exists) {
-        var data = doc.data()!;
-        setState(() {
-          topN = data['top'];
-          zoneN = data['zone'];
-          totalScore = data['total'] ?? totalScore;
-        });
-      }
-    }).then((onValue) {
-      setState(() {});
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
-
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -580,19 +394,6 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                   width: MediaQuery.of(context).size.width,
                   child: Column(
                     children: [
-                      Container(
-                        alignment: Alignment.center,
-                        width: MediaQuery.of(context).size.width,
-                        padding: EdgeInsets.all(8),
-                        color: AccentColor,
-                        child: Text(
-                          "Basecamp - ${isFemale ? "Female" : "Male"}",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
                       Row(
                         children: [
                           Expanded(
@@ -627,167 +428,140 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                           ),
                         ],
                       ),
-                      StreamBuilder<DocumentSnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('Climbers')
-                            .doc(userData.userID)
-                            .collection('Score')
-                            .doc('basecamp')
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return Center(child: CircularProgressIndicator());
-                          }
-                          var infoData = snapshot.data!.data();
-                          var basecampData =
-                              snapshot.data!.data() as Map<String, dynamic>? ??
-                                  {};
-
-                          baseCampRouteData = (basecampData['basecampRouteData']
-                                      as List?)
-                                  ?.map((item) => item as Map<String, dynamic>)
-                                  .toList() ??
-                              [];
-                          //print(baseCampRouteData);
-                          return Column(
-                            children: baseCampRouteData.map((route) {
-                              Color rowColor = Colors.transparent;
-                              // if (route["Zone"]) {
-                              //   rowColor = Colors.grey[200]!;
-                              // }
-                              // if (route["Top"]) {
-                              //   rowColor = Colors.grey[300]!;
-                              // }
-                              // if (route["isTop10"]) {
-                              //   rowColor = Colors.blue[100]!;
-                              // }
-                              return Container(
-                                height: size.height * 0.08,
-                                color: rowColor,
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Container(
-                                        padding: EdgeInsets.all(8),
-                                        child: Text(
-                                          route["Route"],
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
+                      ...baseCampRouteData.map((route) {
+                        Color rowColor = Colors.transparent;
+                        // if (route["Zone"]) {
+                        //   rowColor = Colors.grey[200]!;
+                        // }
+                        // if (route["Top"]) {
+                        //   rowColor = Colors.grey[300]!;
+                        // }
+                        // if (route["isTop10"]) {
+                        //   rowColor = Colors.blue[100]!;
+                        // }
+                        return Container(
+                          height: size.height * 0.08,
+                          color: rowColor,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: EdgeInsets.all(8),
+                                  child: Text(
+                                    route["Route"],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
                                     ),
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          _showConfirmationDialog(
-                                            "zone",
-                                            route["Zone"],
-                                            () {
-                                              setState(() {
-                                                route["Zone"] = !route["Zone"];
-                                                if (!route["Zone"])
-                                                  route["Top"] = false;
-                                                _calculateScore();
-
-                                                _updateRouteInFirebase(route);
-                                                // Update the route in Firebase
-                                              });
-                                            },
-                                          );
-                                        },
-                                        child: Center(
-                                          child: Container(
-                                            alignment: Alignment.center,
-                                            width: size.width * 0.3,
-                                            height: size.height * 0.06,
-                                            padding: EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: route["Zone"]
-                                                  ? AccentColor
-                                                  : Colors.transparent,
-                                              border: Border.all(
-                                                color: AccentColor,
-                                                width: 2,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                            ),
-                                            child: route["Zone"]
-                                                ? Icon(
-                                                    Icons.check,
-                                                    color: Colors.white,
-                                                    size: 16,
-                                                  )
-                                                : Text(
-                                                    "Zone",
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          _showConfirmationDialog(
-                                            "top",
-                                            route["Top"],
-                                            () {
-                                              setState(() {
-                                                route["Top"] = !route["Top"];
-                                                if (route["Top"])
-                                                  route["Zone"] = true;
-                                                _calculateScore();
-                                                _updateRouteInFirebase(route);
-                                                // Update the route in Firebase
-                                              });
-                                            },
-                                          );
-                                        },
-                                        child: Center(
-                                          child: Container(
-                                            alignment: Alignment.center,
-                                            height: size.height * 0.06,
-                                            width: size.width * 0.3,
-                                            padding: EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: route["Top"]
-                                                  ? AccentColor
-                                                  : Colors.transparent,
-                                              border: Border.all(
-                                                color: AccentColor,
-                                                width: 2,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                            ),
-                                            child: route["Top"]
-                                                ? Icon(
-                                                    Icons.check,
-                                                    color: Colors.white,
-                                                    size: 16,
-                                                  )
-                                                : Text(
-                                                    "Top",
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              );
-                            }).toList(),
-                          );
-                        },
-                      ),
+                              ),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    _showConfirmationDialog(
+                                      "zone",
+                                      route["Zone"],
+                                      () {
+                                        setState(() {
+                                          route["Zone"] = !route["Zone"];
+                                          if (!route["Zone"]) {
+                                            route["Top"] = false;
+                                          }
+                                          _calculateScore();
+                                        });
+                                      },
+                                    );
+                                  },
+                                  child: Center(
+                                    child: Container(
+                                      alignment: Alignment.center,
+                                      width: size.width * 0.3,
+                                      height: size.height * 0.06,
+                                      padding: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: route["Zone"]
+                                            ? route["isTop10"]
+                                                ? AccentColor
+                                                : Colors.grey
+                                            : Colors.transparent,
+                                        border: Border.all(
+                                          color: AccentColor,
+                                          width: 2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: route["Zone"]
+                                          ? Icon(
+                                              Icons.check,
+                                              color: Colors.white,
+                                              size: 16,
+                                            )
+                                          : Text(
+                                              "Zone",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    _showConfirmationDialog(
+                                      "top",
+                                      route["Top"],
+                                      () {
+                                        setState(() {
+                                          route["Top"] = !route["Top"];
+                                          if (route["Top"]) {
+                                            route["Zone"] = true;
+                                          }
+                                          _calculateScore();
+                                        });
+                                      },
+                                    );
+                                  },
+                                  child: Center(
+                                    child: Container(
+                                      alignment: Alignment.center,
+                                      height: size.height * 0.06,
+                                      width: size.width * 0.3,
+                                      padding: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: route["Top"]
+                                            ? route["isTop10"]
+                                                ? AccentColor
+                                                : Colors.grey
+                                            : Colors.transparent,
+                                        border: Border.all(
+                                          color: AccentColor,
+                                          width: 2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: route["Top"]
+                                          ? Icon(
+                                              Icons.check,
+                                              color: Colors.white,
+                                              size: 16,
+                                            )
+                                          : Text(
+                                              "Top",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                       SizedBox(height: size.height * 0.2),
                     ],
                   ),
@@ -819,7 +593,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                                 ),
                               ),
                               Text(
-                                '${zoneN}',
+                                '${_zoneCount()}',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
@@ -840,7 +614,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                                 ),
                               ),
                               Text(
-                                '${topN}',
+                                '${_topCount()}',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
