@@ -11,6 +11,7 @@ import 'package:goatgames25webapp/CrestScoreCollecion.dart';
 import 'package:goatgames25webapp/EventUtil.dart';
 import 'package:goatgames25webapp/Theme.dart';
 import 'package:goatgames25webapp/data.dart';
+import 'package:goatgames25webapp/loading.dart';
 import 'package:goatgames25webapp/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,11 +29,15 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     getUserIDLocal().then((_) {
-      fetchUserDataFromFirestore().then((onValue) {
-        print("User Data Fetched:");
-        print(userData.userID);
-        print(userData.firstName);
-        print(userData.tier);
+      Future.delayed(Duration(milliseconds: 1500)).then((_) {
+        fetchUserDataFromFirestore().then((onValue) {
+          print("User Data Fetched:");
+          print(userData.userID);
+          print(userData.firstName);
+          print(userData.tier);
+          _loading = false;
+          setState(() {});
+        });
       });
     });
 
@@ -88,251 +93,266 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
+  bool _loading = true;
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/bg.jpg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Container(
-          // color: const Color.fromARGB(255, 28, 28, 28),
-          // padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                // color: Colors.black,
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Image.asset('assets/sgicon.png', height: 40),
-                    SizedBox(width: 5),
-                    IconButton(
-                      icon: Icon(Icons.logout, color: Colors.white),
-                      onPressed: () async {
-                        await FirebaseAuth.instance.signOut();
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginPage()),
-                        );
-                      },
-                    ),
-                    // Text(
-                    //   'Goat Games 2025',
-                    //   style: TextStyle(color: AccentColor, fontSize: 20),
-                    // ),
-                  ],
+      body: _loading
+          ? LoadingScreen()
+          : Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/bg.jpg'),
+                  fit: BoxFit.cover,
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                decoration: BoxDecoration(
-                  // color: Colors.black,
-                  boxShadow: [
-                    // BoxShadow(
-                    //   color: AccentColor,
-                    //   spreadRadius: 1,
-                    //   blurRadius: 7,
-                    //   offset: Offset(0, 3),
-                    // ),
-                  ],
-                  // borderRadius: BorderRadius.circular(10),
-                  // border: Border.all(color: AccentColor),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Container(
+                // color: const Color.fromARGB(255, 28, 28, 28),
+                // padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome!',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: size.width * 0.08,
-                          ),
-                        ),
-                        Text(
-                          '${userData.firstName}',
-                          style: TextStyle(
-                            color: AccentColor,
-                            fontSize: size.width * 0.06,
-                          ),
-                        ),
-                        RichText(
-                          text: TextSpan(
+                    Container(
+                      // color: Colors.black,
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Image.asset('assets/sgicon.png', height: 40),
+                          SizedBox(width: 5),
+                          Row(
                             children: [
-                              TextSpan(
-                                text: 'ID: ',
+                              IconButton(
+                                icon: Icon(Icons.refresh, color: Colors.white),
+                                onPressed: () {
+                                  setState(() {});
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.logout, color: Colors.white),
+                                onPressed: () async {
+                                  await FirebaseAuth.instance.signOut();
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => LoginPage()),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          // Text(
+                          //   'Goat Games 2025',
+                          //   style: TextStyle(color: AccentColor, fontSize: 20),
+                          // ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      decoration: BoxDecoration(
+                        // color: Colors.black,
+                        boxShadow: [
+                          // BoxShadow(
+                          //   color: AccentColor,
+                          //   spreadRadius: 1,
+                          //   blurRadius: 7,
+                          //   offset: Offset(0, 3),
+                          // ),
+                        ],
+                        // borderRadius: BorderRadius.circular(10),
+                        // border: Border.all(color: AccentColor),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome!',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: size.width * 0.08,
                                 ),
                               ),
-                              TextSpan(
-                                text: userData.userID,
+                              Text(
+                                '${userData.firstName}',
                                 style: TextStyle(
                                   color: AccentColor,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: size.width * 0.06,
+                                ),
+                              ),
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'ID: ',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: userData.userID,
+                                      style: TextStyle(
+                                        color: AccentColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                    Stages().baseCamp_leaderboard
-                        ? Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Category',
-                                  style: TextStyle(
-                                    color: AccentColor,
-                                    fontSize: size.width * 0.04,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                alignment: Alignment.center,
-                                width: size.width * 0.3,
-                                padding: EdgeInsets.all(8.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    // BoxShadow(
-                                    //   color: AccentColor,
-                                    //   spreadRadius: 1,
-                                    //   blurRadius: 7,
-                                    //   offset: Offset(0, 3),
-                                    // ),
+                          Stages().baseCamp_leaderboard
+                              ? Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Category',
+                                        style: TextStyle(
+                                          color: AccentColor,
+                                          fontSize: size.width * 0.04,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      alignment: Alignment.center,
+                                      width: size.width * 0.3,
+                                      padding: EdgeInsets.all(8.0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        boxShadow: [
+                                          // BoxShadow(
+                                          //   color: AccentColor,
+                                          //   spreadRadius: 1,
+                                          //   blurRadius: 7,
+                                          //   offset: Offset(0, 3),
+                                          // ),
+                                        ],
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: AccentColor),
+                                      ),
+                                      child: Text(
+                                        userData.tier,
+                                        style: TextStyle(
+                                          color: AccentColor,
+                                          fontSize: size.width * 0.03,
+                                        ),
+                                      ),
+                                    ),
                                   ],
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: AccentColor),
-                                ),
-                                child: Text(
-                                  userData.tier,
-                                  style: TextStyle(
-                                    color: AccentColor,
-                                    fontSize: size.width * 0.035,
+                                )
+                              : SizedBox(),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: SponsorBox(),
+                    ),
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          Stages().baseCamp_score
+                              // ? userData.phases['baseCamp_score']['completed'] ==
+                              //         !true
+                              ? MenuButton(
+                                  context,
+                                  "Basecamp",
+                                  "Score Collection",
+                                  "assets/bc_logo.jpg",
+                                  BaseCampScoreCard(
+                                    isNew: true,
                                   ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : SizedBox(),
+                                  true,
+                                  "Start")
+                              : SizedBox(),
+
+                          // userData.phases['baseCamp_score']['completed'] == true
+                          MenuButton(
+                              context,
+                              "Basecamp",
+                              "Scorecard",
+                              "assets/bc_logo.jpg",
+                              BaseCampCardView(),
+                              false,
+                              "View"),
+
+                          Stages().baseCamp_leaderboard
+                              ? MenuButton(
+                                  context,
+                                  "Basecamp",
+                                  "Leadboard",
+                                  "assets/bc_logo.jpg",
+                                  BasecampLeaderboard(),
+                                  false,
+                                  "View")
+                              : SizedBox(),
+                          Stages().crest_booking
+                              ? MenuButton(
+                                  context,
+                                  "Crest",
+                                  "Timeslots",
+                                  "assets/bc_logo.jpg",
+                                  CrestSlotBookingPage(),
+                                  false,
+                                  "Book")
+                              : SizedBox(),
+                          Stages().crest_score
+                              ? userData.phases['Crest_score']['completed'] ==
+                                      !true
+                                  ? MenuButton(
+                                      context,
+                                      "Crest",
+                                      "Score Collection",
+                                      "assets/crest_logo.jpg",
+                                      CrestScoreCard(isNew: true),
+                                      true,
+                                      "Start")
+                                  : SizedBox()
+                              : SizedBox(),
+                          Stages().crest_card
+                              ? MenuButton(
+                                  context,
+                                  "Crest",
+                                  "Score Card",
+                                  "assets/crest_logo.jpg",
+                                  CrestCardView(),
+                                  false,
+                                  "View")
+                              : SizedBox(),
+                          Stages().crest_leaderboard
+                              ? MenuButton(
+                                  context,
+                                  "Crest",
+                                  "Leadboard",
+                                  "assets/crest_logo.jpg",
+                                  CrestLeaderboard(),
+                                  false,
+                                  "View")
+                              : SizedBox(),
+                          Stages().crest_leaderboard
+                              ? MenuButton(
+                                  context,
+                                  "Summit",
+                                  "Leadboard",
+                                  "assets/summit_logo.jpg",
+                                  CrestLeaderboard(),
+                                  false,
+                                  "View")
+                              : SizedBox(),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: SponsorBox(),
-              ),
-              Expanded(
-                child: ListView(
-                  children: [
-                    Stages().baseCamp_score
-                        // ? userData.phases['baseCamp_score']['completed'] ==
-                        //         !true
-                        ? MenuButton(
-                            context,
-                            "Basecamp",
-                            "Score Collection",
-                            "assets/bc_logo.jpg",
-                            BaseCampScoreCard(
-                              isNew: true,
-                            ),
-                            true,
-                            "Start")
-                        : SizedBox(),
-
-                    // userData.phases['baseCamp_score']['completed'] == true
-                    MenuButton(
-                        context,
-                        "Basecamp",
-                        "Scorecard",
-                        "assets/bc_logo.jpg",
-                        BaseCampCardView(),
-                        false,
-                        "View"),
-
-                    Stages().baseCamp_leaderboard
-                        ? MenuButton(
-                            context,
-                            "Basecamp",
-                            "Leadboard",
-                            "assets/bc_logo.jpg",
-                            BasecampLeaderboard(),
-                            false,
-                            "View")
-                        : SizedBox(),
-                    Stages().crest_booking
-                        ? MenuButton(
-                            context,
-                            "Crest",
-                            "Timeslots",
-                            "assets/bc_logo.jpg",
-                            CrestSlotBookingPage(),
-                            false,
-                            "Book")
-                        : SizedBox(),
-                    Stages().crest_score
-                        ? userData.phases['Crest_score']['completed'] == !true
-                            ? MenuButton(
-                                context,
-                                "Crest",
-                                "Score Collection",
-                                "assets/crest_logo.jpg",
-                                CrestScoreCard(isNew: true),
-                                true,
-                                "Start")
-                            : SizedBox()
-                        : SizedBox(),
-                    Stages().crest_card
-                        ? MenuButton(
-                            context,
-                            "Crest",
-                            "Score Card",
-                            "assets/crest_logo.jpg",
-                            CrestCardView(),
-                            false,
-                            "View")
-                        : SizedBox(),
-                    Stages().crest_leaderboard
-                        ? MenuButton(
-                            context,
-                            "Crest",
-                            "Leadboard",
-                            "assets/crest_logo.jpg",
-                            CrestLeaderboard(),
-                            false,
-                            "View")
-                        : SizedBox(),
-                    Stages().crest_leaderboard
-                        ? MenuButton(
-                            context,
-                            "Summit",
-                            "Leadboard",
-                            "assets/summit_logo.jpg",
-                            CrestLeaderboard(),
-                            false,
-                            "View")
-                        : SizedBox(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
