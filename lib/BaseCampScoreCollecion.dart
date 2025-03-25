@@ -97,6 +97,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
         .collection('Climbers')
         .doc(userData.userID)
         .update({
+      'Basecamp_score': totalScore,
       'tier': tier,
     }).then((onValue) {
       print("Score Submitted");

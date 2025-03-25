@@ -23,7 +23,16 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   //getAppVersion();
-  //fetchPhasesFromFirestore();
+  fetchPhasesFromFirestore().then((data) {
+    print(stages.baseCamp_score);
+    print(stages.baseCamp_card);
+    print(stages.baseCamp_leaderboard);
+    print(stages.crest_booking);
+    print(stages.crest_score);
+    print(stages.crest_card);
+    print(stages.crest_leaderboard);
+    print(stages.summit_leaderboard);
+  });
   // SharedPreferences prefs = await SharedPreferences.getInstance();
   // userIDLocal = prefs.getString('userIDLocal');
   runApp(const MyApp());

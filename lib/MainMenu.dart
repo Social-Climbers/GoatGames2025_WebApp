@@ -207,7 +207,7 @@ class _MainPageState extends State<MainPage> {
                               ),
                             ],
                           ),
-                          Stages().baseCamp_leaderboard
+                          stages.baseCamp_leaderboard
                               ? Column(
                                   children: [
                                     Padding(
@@ -258,7 +258,7 @@ class _MainPageState extends State<MainPage> {
                     Expanded(
                       child: ListView(
                         children: [
-                          Stages().baseCamp_score
+                          stages.baseCamp_score
                               // ? userData.phases['baseCamp_score']['completed'] ==
                               //         !true
                               ? MenuButton(
@@ -274,16 +274,18 @@ class _MainPageState extends State<MainPage> {
                               : SizedBox(),
 
                           // userData.phases['baseCamp_score']['completed'] == true
-                          MenuButton(
-                              context,
-                              "Basecamp",
-                              "Scorecard",
-                              "assets/bc_logo.jpg",
-                              BaseCampCardView(),
-                              false,
-                              "View"),
+                          stages.baseCamp_card
+                              ? MenuButton(
+                                  context,
+                                  "Basecamp",
+                                  "Scorecard",
+                                  "assets/bc_logo.jpg",
+                                  BaseCampCardView(),
+                                  false,
+                                  "View")
+                              : SizedBox(),
 
-                          Stages().baseCamp_leaderboard
+                          stages.baseCamp_leaderboard
                               ? MenuButton(
                                   context,
                                   "Basecamp",
@@ -293,7 +295,7 @@ class _MainPageState extends State<MainPage> {
                                   false,
                                   "View")
                               : SizedBox(),
-                          Stages().crest_booking
+                          stages.crest_booking
                               ? MenuButton(
                                   context,
                                   "Crest",
@@ -303,7 +305,7 @@ class _MainPageState extends State<MainPage> {
                                   false,
                                   "Book")
                               : SizedBox(),
-                          Stages().crest_score
+                          stages.crest_score
                               ? userData.phases['Crest_score']['completed'] ==
                                       !true
                                   ? MenuButton(
@@ -316,7 +318,7 @@ class _MainPageState extends State<MainPage> {
                                       "Start")
                                   : SizedBox()
                               : SizedBox(),
-                          Stages().crest_card
+                          stages.crest_card
                               ? MenuButton(
                                   context,
                                   "Crest",
@@ -326,7 +328,7 @@ class _MainPageState extends State<MainPage> {
                                   false,
                                   "View")
                               : SizedBox(),
-                          Stages().crest_leaderboard
+                          stages.crest_leaderboard
                               ? MenuButton(
                                   context,
                                   "Crest",
@@ -336,7 +338,7 @@ class _MainPageState extends State<MainPage> {
                                   false,
                                   "View")
                               : SizedBox(),
-                          Stages().crest_leaderboard
+                          stages.crest_leaderboard
                               ? MenuButton(
                                   context,
                                   "Summit",

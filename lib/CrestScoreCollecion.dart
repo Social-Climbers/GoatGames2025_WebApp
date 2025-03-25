@@ -93,6 +93,14 @@ class _CrestScoreCardState extends State<CrestScoreCard> {
     }).then((onValue) {
       print("Score Submitted");
     });
+    FirebaseFirestore.instance
+        .collection('Climbers')
+        .doc(userData.userID)
+        .update({
+      'Crest_score': totalScore,
+    }).then((onValue) {
+      print("Score Submitted");
+    });
   }
 
   void _updateRouteInFirebase(Map<String, dynamic> route) {
