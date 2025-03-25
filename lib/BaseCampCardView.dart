@@ -89,7 +89,7 @@ class _BaseCampCardViewState extends State<BaseCampCardView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              userData.firstName,
+                              userData.firstName + " " + userData.lastName,
                               style: TextStyle(
                                 color: AccentColor,
                                 fontSize: size.width * 0.04,

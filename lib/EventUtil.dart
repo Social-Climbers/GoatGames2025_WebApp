@@ -38,7 +38,7 @@ Future<bool> getSessionActive(String round) async {
       FirebaseFirestore.instance.collection('Climbers');
   DocumentSnapshot doc = await climbers.doc(userData.userID).get();
   if (doc.exists) {
-    print("Session Found");
+    print("Session Fund");
     return doc['sessionData${round}']['sessionActive'] ?? false;
   }
   return false;

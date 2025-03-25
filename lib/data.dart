@@ -3,10 +3,11 @@ import 'package:goatgames25webapp/RouteData.dart';
 
 class UserData {
   String userID = "GG25-150";
-  String firstName = 'Hariras';
-  String lastName = 'Tongyai';
+  String firstName = 'NA';
+  String lastName = 'NA';
   bool ibex = true;
   bool isFemale = false;
+  String tier = 'Unclaassed';
 
   Map<String, dynamic> phases = {
     'baseCamp_score': {'completed': false, 'timestamp': null},
@@ -47,6 +48,33 @@ class Stages {
   bool crest_card = true;
   bool crest_leaderboard = true;
   bool summit_leaderboard = false;
+}
+
+Future<UserData> fetchUserDataFromFirestore() async {
+  DocumentSnapshot snapshot = await FirebaseFirestore.instance
+      .collection('Climbers')
+      .doc(userData.userID)
+      .get();
+  print("Fetching User:");
+  if (snapshot.exists) {
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    print(data['userID']);
+    print(data['first_name']);
+
+    userData.firstName = data['first_name'] ?? '';
+    userData.lastName = data['last_name'] ?? '';
+
+    userData.tier = data['tier'] ?? '';
+    return UserData()
+      ..userID = data['userID'] ?? ''
+      ..firstName = data['first_name'] ?? ''
+      ..lastName = data['last_name'] ?? ''
+      ..ibex = data['ibex'] ?? false
+      //..isFemale = data['isFemale'] ?? false
+      ..tier = data['tier'] ?? '';
+  } else {
+    throw Exception("User document does not exist");
+  }
 }
 
 Stages stages = Stages();

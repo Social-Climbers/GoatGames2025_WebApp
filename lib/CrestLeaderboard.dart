@@ -104,15 +104,125 @@ class CrestLeaderboard extends StatelessWidget {
               _buildCategoryLabel('Silverhorn'),
               ...silverhornUsers.map(
                 (doc) => Container(
-                  padding: const EdgeInsets.all(8.0),
-                  margin: const EdgeInsets.symmetric(vertical: 4.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[800],
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Text(
-                    doc['first_name'],
-                    style: TextStyle(color: Colors.white),
+                  child: Row(
+                    children: [
+                      FutureBuilder<Map<String, dynamic>>(
+                        future: fetchClimberScore(doc['userID']),
+                        builder: (context, scoreSnapshot) {
+                          if (scoreSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          }
+                          if (scoreSnapshot.hasError) {
+                            return Text('Error: ${scoreSnapshot.error}');
+                          }
+                          if (!scoreSnapshot.hasData) {
+                            return Text('No score available');
+                          }
+
+                          var scoreData = scoreSnapshot.data!;
+                          return Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            alignment: Alignment.center,
+                            height: size.height * 0.125,
+                            width: size.width,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              doc['userID'] + ' ',
+                                              style:
+                                                  TextStyle(color: AccentColor),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          doc['first_name'] +
+                                              ' ' +
+                                              doc['last_name'],
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              'Time: ',
+                                              style:
+                                                  TextStyle(color: AccentColor),
+                                            ),
+                                            Text(
+                                              '${scoreData['time_used']}',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              ' Top',
+                                              style:
+                                                  TextStyle(color: AccentColor),
+                                            ),
+                                            Text(
+                                              '${scoreData['top']}',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ],
+                                        ),
+                                        Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(' Zone',
+                                                style: TextStyle(
+                                                  color: AccentColor,
+                                                )),
+                                            Text(
+                                              '${scoreData['zone']}',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Divider(
+                                    color: Colors.white,
+                                    thickness: 1,
+                                  ),
+                                )
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),

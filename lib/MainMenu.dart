@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:goatgames25webapp/BaseCampCardView.dart';
 import 'package:goatgames25webapp/BaseCampScoreCollecion.dart';
@@ -11,11 +12,10 @@ import 'package:goatgames25webapp/EventUtil.dart';
 import 'package:goatgames25webapp/Theme.dart';
 import 'package:goatgames25webapp/data.dart';
 import 'package:goatgames25webapp/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainPage extends StatefulWidget {
-  final String userId;
-
-  MainPage({required this.userId});
+  MainPage({Key? key}) : super(key: key);
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -27,8 +27,32 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    getUserIDLocal().then((_) {
+      fetchUserDataFromFirestore().then((onValue) {
+        print("User Data Fetched:");
+        print(userData.userID);
+        print(userData.firstName);
+        print(userData.tier);
+      });
+    });
+
     checkForActiveBaseCampSession();
     checkForActiveCrestSession();
+    Future.delayed(Duration(milliseconds: 500)).then((_) {
+      setState(() {});
+    });
+  }
+
+  Future<void> getUserIDLocal() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userID = prefs.getString('userIDLocal');
+    if (userID != null) {
+      userData.userID = userID;
+      print("Id Set Complete");
+    } else {
+      // Handle the case where userIDLocal does not exist
+      print("userIDLocal does not exist in SharedPreferences");
+    }
   }
 
   void checkForActiveBaseCampSession() async {
@@ -85,9 +109,20 @@ class _MainPageState extends State<MainPage> {
                 // color: Colors.black,
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Image.asset('assets/sgicon.png', height: 40),
                     SizedBox(width: 5),
+                    IconButton(
+                      icon: Icon(Icons.logout, color: Colors.white),
+                      onPressed: () async {
+                        await FirebaseAuth.instance.signOut();
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => LoginPage()),
+                        );
+                      },
+                    ),
                     // Text(
                     //   'Goat Games 2025',
                     //   style: TextStyle(color: AccentColor, fontSize: 20),
@@ -95,9 +130,8 @@ class _MainPageState extends State<MainPage> {
                   ],
                 ),
               ),
-              SizedBox(height: 5),
               Container(
-                padding: EdgeInsets.all(16.0),
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
                 decoration: BoxDecoration(
                   // color: Colors.black,
                   boxShadow: [
@@ -185,10 +219,10 @@ class _MainPageState extends State<MainPage> {
                                   border: Border.all(color: AccentColor),
                                 ),
                                 child: Text(
-                                  userData.ibex ? "Ibex" : "Silverhorn",
+                                  userData.tier,
                                   style: TextStyle(
                                     color: AccentColor,
-                                    fontSize: size.width * 0.04,
+                                    fontSize: size.width * 0.035,
                                   ),
                                 ),
                               ),
@@ -198,7 +232,10 @@ class _MainPageState extends State<MainPage> {
                   ],
                 ),
               ),
-              SponsorBox(),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: SponsorBox(),
+              ),
               Expanded(
                 child: ListView(
                   children: [
@@ -214,18 +251,18 @@ class _MainPageState extends State<MainPage> {
                               isNew: true,
                             ),
                             true,
-                          )
+                            "Start")
                         : SizedBox(),
 
                     // userData.phases['baseCamp_score']['completed'] == true
                     MenuButton(
-                      context,
-                      "Basecamp",
-                      "Scorecard",
-                      "assets/bc_logo.jpg",
-                      BaseCampCardView(),
-                      false,
-                    ),
+                        context,
+                        "Basecamp",
+                        "Scorecard",
+                        "assets/bc_logo.jpg",
+                        BaseCampCardView(),
+                        false,
+                        "View"),
 
                     Stages().baseCamp_leaderboard
                         ? MenuButton(
@@ -235,7 +272,7 @@ class _MainPageState extends State<MainPage> {
                             "assets/bc_logo.jpg",
                             BasecampLeaderboard(),
                             false,
-                          )
+                            "View")
                         : SizedBox(),
                     Stages().crest_booking
                         ? MenuButton(
@@ -245,7 +282,7 @@ class _MainPageState extends State<MainPage> {
                             "assets/bc_logo.jpg",
                             CrestSlotBookingPage(),
                             false,
-                          )
+                            "Book")
                         : SizedBox(),
                     Stages().crest_score
                         ? userData.phases['Crest_score']['completed'] == !true
@@ -256,7 +293,7 @@ class _MainPageState extends State<MainPage> {
                                 "assets/crest_logo.jpg",
                                 CrestScoreCard(isNew: true),
                                 true,
-                              )
+                                "Start")
                             : SizedBox()
                         : SizedBox(),
                     Stages().crest_card
@@ -267,7 +304,7 @@ class _MainPageState extends State<MainPage> {
                             "assets/crest_logo.jpg",
                             CrestCardView(),
                             false,
-                          )
+                            "View")
                         : SizedBox(),
                     Stages().crest_leaderboard
                         ? MenuButton(
@@ -277,7 +314,7 @@ class _MainPageState extends State<MainPage> {
                             "assets/crest_logo.jpg",
                             CrestLeaderboard(),
                             false,
-                          )
+                            "View")
                         : SizedBox(),
                     Stages().crest_leaderboard
                         ? MenuButton(
@@ -287,7 +324,7 @@ class _MainPageState extends State<MainPage> {
                             "assets/summit_logo.jpg",
                             CrestLeaderboard(),
                             false,
-                          )
+                            "View")
                         : SizedBox(),
                   ],
                 ),
@@ -306,6 +343,7 @@ class _MainPageState extends State<MainPage> {
     String image,
     Widget location,
     bool isActive,
+    String action,
   ) {
     var size = MediaQuery.of(context).size;
     return Center(
@@ -431,7 +469,7 @@ class _MainPageState extends State<MainPage> {
                   Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Text(
-                      'Start',
+                      action,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: size.width * 0.03,

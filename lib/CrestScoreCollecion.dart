@@ -440,10 +440,7 @@ class _CrestScoreCardState extends State<CrestScoreCard> {
                 updateSessionActive(false, "Crest").then((onValue) {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => MainPage(
-                              userId: userData.userID,
-                            )),
+                    MaterialPageRoute(builder: (context) => MainPage()),
                   );
                 });
                 // Navigator.of(context).pop();

@@ -270,10 +270,7 @@ class _BaseCampScoreCardState extends State<BaseCampScoreCard> {
                 updateSessionActive(false, "Basecamp").then((onValue) {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => MainPage(
-                              userId: userData.userID,
-                            )),
+                    MaterialPageRoute(builder: (context) => MainPage()),
                   );
                 });
                 // Navigator.of(context).pop();
